@@ -1,54 +1,52 @@
 class BowlingGame
   def initialize
+    @frame = 0
     @roll = 0
-    @bowl = 0
     @score = 0
-    @striked = false
     @spared = false
-    @scores = [[0, 0], [0, 0],[0, 0],[0, 0],[0, 0],[0, 0],[0, 0],[0, 0],[0, 0],[0, 0, 0]]
+    @scores = [['', ''], ['', ''],['', ''],['', ''],['', ''],['', ''],['', ''],['', ''],['', ''],['', '', '']]
   end
 
   def run
     puts "Welcome to Bowling!"
     
     # for every frame that is not the last frame
-    while @roll < 9
+    while @frame < 9
       puts ""
-      puts "Frame #{@roll + 1}, Bowl #{@bowl + 1}"
+      puts "Frame #{@frame + 1}, Bowl #{@roll + 1}"
       puts "Score: #{@score}"
       puts ""
       score = get_score
 
-      if @bowl == 0
+      if @roll == 0
         # first bowl
         if score < 10
           # not a strike, move to next bowl
-          @scores[@roll][@bowl] = score
-          @bowl += 1
+          @scores[@frame][@roll] = score
+          @roll += 1
         else
           # we got a strike
-          # @striked = true
-          @scores[@roll] = [10, 0]
-          @roll += 1
+          @scores[@frame] = [10, '']
+          @frame += 1
         end
         check_spare
       else
         # second bowl
-        @scores[@roll][@bowl] = score
+        @scores[@frame][@roll] = score
         # is it a spare?
-        if score + @scores[@roll][@bowl - 1] == 10
+        if score + @scores[@frame][@roll - 1] == 10
           # it's a spare
           @spared = true
-        elsif !@striked
+        else
           # not a spare :(
-          @score += @scores[@roll][@bowl - 1] + @scores[@roll][@bowl]
+            # binding.irb
+          @score += @scores[@frame][@roll - 1] + @scores[@frame][@roll]
         end
-        check_strike(@roll)
-        @roll += 1
-        @bowl = 0
+        @frame += 1
+        @roll = 0
       end
+      check_strikes
     end
-
   end
 
   def get_score
@@ -58,7 +56,7 @@ class BowlingGame
       
       if score < 0 || score > 10
         puts "Enter a number between 0 and 10"
-      elsif @bowl == 1 && score + @scores[@roll][@bowl - 1] > 10
+      elsif @roll == 1 && score + @scores[@frame][@roll - 1] > 10
         puts "That's more than a strike!"
       else
         break
@@ -67,25 +65,49 @@ class BowlingGame
     return score
   end
 
-def check_spare
-  if @spared
-    # add first bowl from current frame to past frames bowls
-    @score += @scores[@roll - 1][0] + @scores[@roll - 1][1] + @scores[@roll][0]
-    @spared = false
-  end
-end
-
-def check_strikes(frames)
-    # check if last frame was also a strike
-    if @scores[frame - 1] == [10, 0]
-      # last frame was a strike
-      @score += 10 + @scores[frame][0] + @scores[frame][1]
-      @scores[frame - 1][1] = 'x'
-      check_strike(frame - 1)
+  def check_spare
+    if @spared
+      # add first bowl from current frame to past frames bowls
+      @score += @scores[@frame - 1][0] + @scores[@frame - 1][1] + @scores[@frame][0]
+      @spared = false
     end
   end
-end
 
+  def check_strikes
+    # loop from first frame
+    puts @scores.inspect
+    for i in 0...(@scores.length - 1) do
+      if @scores[i] == [10, '']
+        # it's a strike so count up the next 2 rolls
+        next_two_frames = [@scores[i + 1], @scores[i + 2]]
+        unless next_two_scores(next_two_frames).nil?
+          @score += next_two_scores(next_two_frames) + 10
+          @scores[i] = [10, 'x']
+        end
+      end
+    end
+  end
+
+  def next_two_scores(scores)
+    # TESTED
+    # given an array of 4 numbers, will return the sum of the first 2
+    # if there are not enough numbers, will return nil
+    sum = 0
+    numbers_added = 0
+    scores.flatten.each do |score|
+      if score.is_a? Integer
+        sum += score 
+        numbers_added += 1
+      end
+      break if numbers_added == 2
+    end
+
+    if numbers_added < 2
+      return nil
+    else
+      return sum
+    end
+  end
 end
 
 bowling_game = BowlingGame.new
