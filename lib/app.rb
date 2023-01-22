@@ -1,6 +1,6 @@
 class BowlingGame
   def initialize
-    @frame = 0
+    @roll = 0
     @bowl = 0
     @score = 0
     @striked = false
@@ -12,41 +12,39 @@ class BowlingGame
     puts "Welcome to Bowling!"
     
     # for every frame that is not the last frame
-    while @frame < 9
+    while @roll < 9
       puts ""
-      puts "Frame #{@frame + 1}, Bowl #{@bowl + 1}"
+      puts "Frame #{@roll + 1}, Bowl #{@bowl + 1}"
       puts "Score: #{@score}"
       puts ""
+      score = get_score
 
       if @bowl == 0
         # first bowl
-        score = get_score
-
         if score < 10
           # not a strike, move to next bowl
-          @scores[@frame][@bowl] = score
+          @scores[@roll][@bowl] = score
           @bowl += 1
         else
           # we got a strike
-          @striked = true
-          @scores[@frame] = ['x', 'x']
-          @frame += 1
+          # @striked = true
+          @scores[@roll] = [10, 0]
+          @roll += 1
         end
         check_spare
       else
         # second bowl
-        score = get_score
-        @scores[@frame][@bowl] = score
+        @scores[@roll][@bowl] = score
         # is it a spare?
-        if score + @scores[@frame][@bowl - 1] == 10
+        if score + @scores[@roll][@bowl - 1] == 10
           # it's a spare
           @spared = true
         elsif !@striked
           # not a spare :(
-          @score += @scores[@frame][@bowl - 1] + @scores[@frame][@bowl]
+          @score += @scores[@roll][@bowl - 1] + @scores[@roll][@bowl]
         end
-        check_strike
-        @frame += 1
+        check_strike(@roll)
+        @roll += 1
         @bowl = 0
       end
     end
@@ -60,7 +58,7 @@ class BowlingGame
       
       if score < 0 || score > 10
         puts "Enter a number between 0 and 10"
-      elsif @bowl == 1 && score + @scores[@frame][@bowl - 1] > 10
+      elsif @bowl == 1 && score + @scores[@roll][@bowl - 1] > 10
         puts "That's more than a strike!"
       else
         break
@@ -72,15 +70,19 @@ class BowlingGame
 def check_spare
   if @spared
     # add first bowl from current frame to past frames bowls
-    @score += @scores[@frame - 1][0] + @scores[@frame - 1][1] + @scores[@frame][0]
+    @score += @scores[@roll - 1][0] + @scores[@roll - 1][1] + @scores[@roll][0]
     @spared = false
   end
 end
 
-def check_strike
-  if @striked
-    @score += 10 + @scores[@frame][0] + @scores[@frame][1]
-    @striked = false
+def check_strikes(frames)
+    # check if last frame was also a strike
+    if @scores[frame - 1] == [10, 0]
+      # last frame was a strike
+      @score += 10 + @scores[frame][0] + @scores[frame][1]
+      @scores[frame - 1][1] = 'x'
+      check_strike(frame - 1)
+    end
   end
 end
 
