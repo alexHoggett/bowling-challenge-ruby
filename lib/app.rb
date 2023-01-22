@@ -39,7 +39,6 @@ class BowlingGame
           @spared = true
         else
           # not a spare :(
-            # binding.irb
           @score += @scores[@frame][@roll - 1] + @scores[@frame][@roll]
         end
         @frame += 1
@@ -47,6 +46,23 @@ class BowlingGame
       end
       check_strikes
     end
+    # last frame
+    @scores[-1].each do
+      break if @roll == 2 && @scores[-1][0] != 10
+      puts ""
+      puts "Frame #{@frame + 1}, Bowl #{@roll + 1}"
+      puts "Score: #{@score}"
+      puts ""
+      score = get_score
+      @scores[@frame][@roll] = score
+      @score += score
+      check_spare
+      check_strikes
+      @roll += 1
+    end
+
+    puts @scores.inspect
+    puts "You finished with a score of - #{@score}"
   end
 
   def get_score
@@ -56,7 +72,7 @@ class BowlingGame
       
       if score < 0 || score > 10
         puts "Enter a number between 0 and 10"
-      elsif @roll == 1 && score + @scores[@frame][@roll - 1] > 10
+      elsif @roll == 1 && score + @scores[@frame][@roll - 1] > 10 && @frame != 9
         puts "That's more than a strike!"
       else
         break
@@ -76,7 +92,7 @@ class BowlingGame
   def check_strikes
     # loop from first frame
     puts @scores.inspect
-    for i in 0...(@scores.length - 1) do
+    for i in 0...@scores.length do
       if @scores[i] == [10, '']
         # it's a strike so count up the next 2 rolls
         next_two_frames = [@scores[i + 1], @scores[i + 2]]
